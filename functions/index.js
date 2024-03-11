@@ -19,7 +19,61 @@ const logger = require("firebase-functions/logger");
    response.send(result);
  });
 
- exports.post = onRequest((request, response) => {
+ exports.post = onRequest( async(request, response) => {
  // logger.info("Hello logs!", {structuredData: true});
+
+ const body = request.body
+
+ const type = body.type
+
+
+ if( type === "personLikesMe"){
+  const myId = body.myId
+  const idofPersonThatILike = body.idofPersonThatILike
+
+   await firestore.collection("users").doc(idofPersonThatILike).collection("TheyLikeMe").doc(myId).set(
+    {
+uid:myId,
+documentReference: firestore.collection("users").doc(myId)
+
+   }
+   ,{merge:true})
+   response.send("Successfull")
+
+ }
+
+ if( type === "IDontLikeYou"){
+  const myId = body.myId
+  const idOfPersonThatIDontLike = body.idOfPersonThatIDontLike
+
+  await firestore.collection("users").doc(myId).collection("TheyLikeMe").doc(idOfPersonThatIDontLike).delete()
+  response.send("Sucessfully Deleted")
+ }
+
+ if (type === "weLikeEachOther"){
+  const myId = body.myId
+  const idofPersonThatILike = body.idofPersonThatILike
+
+ //I prepare the 2 objects
+ // other person´s object
+ const otherPersonObject = {
+  uid: idofPersonThatILike,
+  documentReference: firestore.collection("users").doc(idofPersonThatILike)
+}
+//  My object 
+ const myObject = {
+  uid:myId,
+  documentReference: firestore.collection("users").doc(myId)
+ }
+
+ // 2inserts in welikeeachother subcollection
+await firestore.collection("users").doc(idofPersonThatILike).collection("weLikeEachOther").doc(myId).set(myObject, {merge:true})
+await firestore.collection("users").doc(myId).collection("weLikeEachOther").doc(idofPersonThatILike).set(otherPersonObject, {merge:true})
+
+// Delete the document from my subcollection of "theyLikeMe"
+await firestore.collection("users").doc(myId).collection("TheyLikeMe").doc(idofPersonThatILike).delete()
+response.send("We like Each other successfully done")
+ }
+
    response.send("Hello iam a post!");
  });
