@@ -72,8 +72,27 @@ await firestore.collection("users").doc(myId).collection("weLikeEachOther").doc(
 
 // Delete the document from my subcollection of "theyLikeMe"
 await firestore.collection("users").doc(myId).collection("TheyLikeMe").doc(idofPersonThatILike).delete()
+
+//Create teh chat Document in the chat collection
+const idOfDocument = generateChatId(myId, idofPersonThatILike)
+
+await firestore.collection("chats").doc(idOfDocument).set({
+  idsConcatenated: idOfDocument,
+  arrayOfPeopleInConversation:[myId, idofPersonThatILike]
+},{merge:true})
+
+
 response.send("We like Each other successfully done")
  }
 
    response.send("Hello iam a post!");
  });
+
+
+ const generateChatId = (id1,id2) => {
+const array =[id1,id2]
+array.sort()
+return ´${array[0]}-${array[1]}´
+
+
+ }
