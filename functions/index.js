@@ -85,6 +85,35 @@ await firestore.collection("chats").doc(idOfDocument).set({
 response.send("We like Each other successfully done")
  }
 
+if (type === "breakMatch"){
+ //Get the data passed through the API CALL
+  const myId = body.myId
+  const idOfPersonThatIDontLike = body.idOfPersonThatIDontLike
+ 
+  //delete all the chat
+  const id = generateChatId(myId,idOfPersonThatIDontLike)
+  
+  const listMessageDocuments = await firestore.collection("chats").doc(id).collection("messages").listDocuments()
+  
+  listMessageDocuments.forEach((eadhDoc)=>{
+    eadhDoc.delete()
+  })
+
+  await firestore.collection("chats").doc(id).delete()
+
+  //Delete the user from the "weLikeEachOther" subcollections in both places (mine and other persons sub)
+
+  const path1 = `users/${myId}/weLikeEachOther/${idOfPersonThatIDontLike}`
+  const path2 = `users/${idOfPersonThatIDontLike}/weLikeEachOther/${myId}`
+
+  //Perform the delete operations
+  await firestore.doc(path1).delete()
+  await firestore.doc(path2).delete()
+
+  response.send("Deletion sucessfull")
+
+}
+
    response.send("Hello iam a post!");
  });
 
@@ -92,7 +121,7 @@ response.send("We like Each other successfully done")
  const generateChatId = (id1,id2) => {
 const array =[id1,id2]
 array.sort()
-return ´${array[0]}-${array[1]}´
+return `${array[0]}-${array[1]}`
 
 
  }
